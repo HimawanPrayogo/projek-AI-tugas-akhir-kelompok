@@ -221,8 +221,16 @@ kelas = {
                 "deadline": "15 Mei 2024",
             }
         }
+    },
+    
+    "matematika": {
+        "tugas": {
+            
+        }
     }
 }
+
+
 
 
 
@@ -304,7 +312,9 @@ patterns = {
     r"(?:apa saja|sebutkan|daftar) kelas(?: yang)? ada": lambda matches: get_kelas_list(),
     r"(?:apa saja|sebutkan|daftar|apa) kelas?": lambda matches: get_kelas_list(),
     r"(?:apa saja|sebutkan|daftar) kelas(?: yang)? tersedia": lambda matches: get_kelas_list(),
-    r"(?:apa saja|sebutkan|daftar) (?:tugas|PR)(?: untuk| di)? (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
+    r"(?:apa saja|sebutkan|daftar|apa) (?:tugas|PR)(?: untuk| di)? (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
+    
+    
     r"(?:tugas|pekerjaan rumah|PR) apa(?: yang| saja yang) diberikan(?: di| untuk)? (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
     r"(?:detail|informasi tentang|info tentang|info detail tentang) (.*) (?:tugas|pekerjaan rumah|PR) (.*)": lambda matches: get_tugas_detail(matches[1].strip().lower(), matches[0].strip().lower()),
     r"(?:detail|informasi tentang|info tentang|info detail tentang) (?:tugas|pekerjaan rumah|PR) (.*) (?:untuk|di)? (.*)": lambda matches: get_tugas_detail(matches[1].strip().lower(), matches[0].strip().lower()),
@@ -315,7 +325,10 @@ patterns = {
     r"sampai jumpa|bye|selamat tinggal": ["Sampai jumpa!", "Selamat tinggal!", "Bye!"],
     r"(?:terima kasih|thanks)": ["Sama-sama! Ada yang lain yang bisa saya bantu?"],
     r"(.*)": ["Maaf, saya tidak mengerti. Bisakah kamu mengulanginya?"],
-     r"(?:apa saja|sebutkan|daftar) (?:tugas|PR)(?: untuk| di)? (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
+     r"(?:apa saja|sebutkan|daftar|apa) (?:tugas|PR)(?: untuk| di)? (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
+     
+     
+     
     r"(?:tugas|pekerjaan rumah|PR) apa(?: yang| saja yang) diberikan(?: di| untuk)? (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
     r"(?:detail|informasi tentang|info tentang|info detail tentang) (.*) (?:tugas|pekerjaan rumah|PR) (.*)": lambda matches: get_tugas_detail(matches[1].strip().lower(), matches[0].strip().lower()),
     r"(?:detail|informasi tentang|info tentang|info detail tentang) (?:tugas|pekerjaan rumah|PR) (.*) (?:untuk|di)? (.*)": lambda matches: get_tugas_detail(matches[1].strip().lower(), matches[0].strip().lower()),
@@ -327,7 +340,11 @@ patterns = {
     r"sampai jumpa|bye|selamat tinggal": ["Sampai jumpa!", "Selamat tinggal!", "Bye!"],
     r"(?:terima kasih|thanks)": ["Sama-sama! Ada yang lain yang bisa saya bantu?"],
     r"(.*)": ["Maaf, saya tidak mengerti. Bisakah kamu mengulanginya?"],
-    r"(?:apa saja|sebutkan|daftar) (?:tugas|PR)(?: untuk| di)? (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
+    r"(?:apa saja|sebutkan|daftar|apa) (?:tugas|PR)(?: untuk| di)? (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
+    
+    
+    r"(?:apa saja|sebutkan|daftar|apa) (?:tugas|PR) (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
+    
     r"(?:tugas|pekerjaan rumah|PR) apa(?: yang| saja yang) diberikan(?: di| untuk)? (.*)": lambda matches: get_tugas(matches[0].strip().lower()),
     r"(?:detail|informasi tentang|info tentang|info detail tentang) (.*) (?:tugas|pekerjaan rumah|PR) (.*)": lambda matches: get_tugas_detail(matches[1].strip().lower(), matches[0].strip().lower()),
     r"(?:detail|informasi tentang|info tentang|info detail tentang) (?:tugas|pekerjaan rumah|PR) (.*) (?:untuk|di)? (.*)": lambda matches: get_tugas_detail(matches[1].strip().lower(), matches[0].strip().lower()),
@@ -341,6 +358,12 @@ patterns = {
     r"(.*)": ["Maaf, saya tidak mengerti. Bisakah kamu mengulanginya?"],
     r"(?:apa saja|sebutkan|daftar) kelas(?: yang)? ada": lambda matches: get_kelas_list(),
     r"(?:apa saja|sebutkan|daftar) kelas(?: yang)? saya ambil": lambda matches: get_kelas_saya(),
+    r"(?:apa |sebutkan|daftar) kelas(?: yang)? ada": lambda matches: get_kelas_saya(),
+     r"(?:apa saja|sebutkan|daftar) (?:tugas|PR)(?: yang)? ada": lambda matches: get_all_tugas(),
+     
+     
+     
+     
 }
 
 
@@ -351,6 +374,30 @@ def get_kelas_saya():
     kelas_list = "\n".join(kelas_saya)
     return f"Anda telah mengambil kelas-kelas berikut:\n{kelas_list}"
 
+
+
+def get_all_tugas():
+    all_tugas = []
+    for kelas_name, kelas_info in kelas.items():
+        tugas_list = kelas_info.get("tugas", {})
+        for tugas_name, tugas_detail in tugas_list.items():
+            all_tugas.append(f"{tugas_name} ({kelas_name}) - Deadline: {tugas_detail.get('deadline', 'Tidak tersedia')}")
+    if all_tugas:
+        return "Berikut adalah daftar semua tugas yang ada:\n" + "\n".join(all_tugas)
+    else:
+        return "Tidak ada tugas yang tersedia saat ini."
+
+# Fungsi untuk mengolah respon
+def respond_to_input(user_input):
+    for pattern, responses in patterns.items():
+        match = re.match(pattern, user_input, re.IGNORECASE)
+        if match:
+            response = responses
+            if callable(response):
+                return response(match.groups())
+            else:
+                return response[0]
+    return "Maaf, saya tidak mengerti. Bisakah kamu mengulanginya?"
 
 
 # Fungsi untuk mengolah respon
